@@ -1,1 +1,236 @@
-<!DOCTYPE html>\n<html lang="en">\n<head>\n    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n    <title>Digital Clock</title>\n    <style>\n        body {\n            display: flex;\n            justify-content: center;\n            align-items: center;\n            height: 100vh;\n            background-color: #282c34;\n            color: white;\n            font-family: Arial, sans-serif;\n        }\n        .clock {\n            text-align: center;\n        }\n        .time {\n            font-size: 48px;\n        }\n    </style>\n</head>\n<body>\n    <div class="clock">\n        <h1>Digital Clock</h1>\n        <div class="time" id="clock"></div>\n        <div id="timezone"></div>\n    </div>\n    <script>\n        function updateClock() {\n            const utcOffset = {\n                'UTC': 0,\n                'EST': -5,\n                'CST': -6,\n                'MST': -7,\n                'PST': -8\n            };\n            const now = new Date();\n            let timeHTML = '';\n            for (const [zone, offset] of Object.entries(utcOffset)) {\n                const localTime = new Date(now.getTime() + (offset * 3600 * 1000));\n                timeHTML += `<div>${zone}: ${localTime.toLocaleTimeString()}</div>`;\n            }\n            document.getElementById('clock').innerHTML = timeHTML;\n        }\n        setInterval(updateClock, 1000);\n        updateClock();\n    </script>\n</body>\n</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>World Clock - Timezone Converter</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        header h1 {
+            font-size: 48px;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        header p {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+
+        .clocks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            animation: fadeInUp 0.8s ease-out 0.2s both;
+        }
+
+        .clock-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .clock-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .clock-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+        }
+
+        .timezone-name {
+            font-size: 24px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .timezone-offset {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .time-display {
+            font-size: 48px;
+            font-weight: 700;
+            color: #667eea;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+
+        .date-display {
+            font-size: 14px;
+            color: #666;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+
+        .location {
+            font-size: 13px;
+            color: #888;
+            margin-top: 10px;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        footer {
+            text-align: center;
+            color: white;
+            margin-top: 50px;
+            opacity: 0.8;
+            animation: fadeInUp 0.8s ease-out 0.4s both;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 36px;
+            }
+
+            .time-display {
+                font-size: 36px;
+            }
+
+            .clocks-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌍 World Clock</h1>
+            <p>Real-time display of current time across multiple time zones</p>
+        </header>
+
+        <div class="clocks-grid" id="clocksContainer"></div>
+
+        <footer>
+            <p>&copy; 2026 World Clock | Stay connected across the globe</p>
+        </footer>
+    </div>
+
+    <script>
+        const timezones = [
+            { name: 'New York', offset: -5, region: 'North America', emoji: '🗽' },
+            { name: 'London', offset: 0, region: 'Europe', emoji: '🇬🇧' },
+            { name: 'Paris', offset: 1, region: 'Europe', emoji: '🇫🇷' },
+            { name: 'Dubai', offset: 4, region: 'Middle East', emoji: '🇦🇪' },
+            { name: 'India', offset: 5.5, region: 'Asia', emoji: '🇮🇳' },
+            { name: 'Tokyo', offset: 9, region: 'Asia', emoji: '🇯🇵' },
+            { name: 'Sydney', offset: 10, region: 'Oceania', emoji: '🇦🇺' },
+            { name: 'Los Angeles', offset: -8, region: 'North America', emoji: '🌴' }
+        ];
+
+        function updateClocks() {
+            const container = document.getElementById('clocksContainer');
+            
+            timezones.forEach(tz => {
+                let clockCard = document.getElementById(`clock-${tz.name}`);
+                
+                if (!clockCard) {
+                    clockCard = document.createElement('div');
+                    clockCard.className = 'clock-card';
+                    clockCard.id = `clock-${tz.name}`;
+                    container.appendChild(clockCard);
+                }
+
+                const utcTime = new Date();
+                const localTime = new Date(utcTime.getTime() + (tz.offset * 3600 * 1000));
+                
+                const hours = String(localTime.getHours()).padStart(2, '0');
+                const minutes = String(localTime.getMinutes()).padStart(2, '0');
+                const seconds = String(localTime.getSeconds()).padStart(2, '0');
+                
+                const date = localTime.toLocaleDateString('en-US', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                });
+
+                const offsetStr = tz.offset >= 0 ? `+${tz.offset}` : `${tz.offset}`;
+
+                clockCard.innerHTML = `
+                    <div class="timezone-name">${tz.emoji} ${tz.name}</div>
+                    <div class="timezone-offset">UTC ${offsetStr}</div>
+                    <div class="time-display">${hours}:${minutes}:${seconds}</div>
+                    <div class="date-display">${date}</div>
+                    <div class="location">${tz.region}</div>
+                `;
+            });
+        }
+
+        // Initial update
+        updateClocks();
+        
+        // Update every second
+        setInterval(updateClocks, 1000);
+    </script>
+</body>
+</html>
